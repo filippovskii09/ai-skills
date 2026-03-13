@@ -1,8 +1,3 @@
----
-name: Frontend Testing Rules
-scope: dedicated testing chat
----
-
 # Frontend Testing Rules
 
 > Rules for the dedicated **testing chat**.
