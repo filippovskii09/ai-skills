@@ -314,3 +314,73 @@ expect(result.current).toHaveProperty('user')
 
 - **MUST NOT** call a custom hook as a plain function in a test — this breaks the Rules of Hooks.
 - **MUST NOT** mock built-in React hooks (`useState`, `useEffect`, etc.) — you lose all confidence in the actual behavior.
+
+---
+
+## 14. Provider / Context Wrapping
+
+### 14.1 Always use a custom render utility
+
+- **MUST NOT** inline provider boilerplate (`<QueryClientProvider>`, `<MemoryRouter>`, `<IntlProvider>`, etc.) directly in individual test files.
+- **MUST** create a `renderWithProviders` (or `customRender`) utility in a shared test-utils file that wraps all required providers.
+- **SHOULD** re-export everything from `@testing-library/react` from that same file — tests should import from one place, not two.
+
+```ts
+// ✅ single import source for all tests
+import { render, screen, waitFor, userEvent } from '@/test-utils'
+
+// ❌ mixing RTL direct imports with custom render
+import { screen } from '@testing-library/react'
+import { renderWithProviders } from '@/test-utils'
+```
+
+### 14.2 QueryClient isolation
+
+- **MUST** create a **new** `QueryClient` instance **inside** the Wrapper component (not outside), so each `render` call gets a fresh client with no shared cache state.
+- **MUST** set `retry: false` in test QueryClient — retries cause flaky, slow tests.
+
+```ts
+// ✅ fresh client per render, no state leakage between tests
+const createTestQueryClient = () =>
+  new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  })
+
+const Wrapper = ({ children }) => {
+  const queryClient = createTestQueryClient() // inside Wrapper ← critical
+  return (
+    <QueryClientProvider client={queryClient}>
+      {children}
+    </QueryClientProvider>
+  )
+}
+
+// ❌ shared singleton — causes state leakage between tests
+const queryClient = new QueryClient() // outside Wrapper
+```
+
+### 14.3 Router in tests
+
+- **MUST** use `MemoryRouter` (not `BrowserRouter`) in tests — it doesn't depend on the real browser history API and is fully isolated.
+- **SHOULD** expose a `route` / `initialEntries` option in `renderWithProviders` for components that depend on the current URL.
+
+```ts
+// ✅ testing a route-dependent component
+render(<AssetList />, { route: '/assets?type=image' })
+
+// Wrapper internally: <MemoryRouter initialEntries={[route]}>
+```
+
+### 14.4 What belongs in the wrapper
+
+Include in the shared `Wrapper` only providers that are **required by the majority of components**. Project-specific examples:
+
+| Provider | When to include |
+|---|---|
+| `QueryClientProvider` | project uses `@tanstack/react-query` |
+| `MemoryRouter` | project uses `react-router-dom` |
+| `IntlProvider` | project uses i18n (`@edx/frontend-platform/i18n`, `react-intl`) |
+| `ThemeProvider` | project uses a CSS-in-JS theme |
+| Redux `<Provider store>` | project uses Redux; pass `store` as an option |
+
+Providers needed by only one or two tests **MUST NOT** be added to the global wrapper — use the `wrapper` option directly in that test instead.
