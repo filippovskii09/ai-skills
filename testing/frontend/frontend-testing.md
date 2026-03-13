@@ -230,3 +230,87 @@ container.querySelector('.d-flex')
 
 - **MUST** rely on React Testing Library semantics (roles, text, accessible names) rather than DOM structure traversal.
 - **MUST NOT** use DOM traversal like `.closest('.utility-class')` or `.parentElement`. Tests should focus on **behavior**, not HTML tree shape.
+
+---
+
+## 13. Custom Hooks Testing
+
+### 13.1 Default approach: test hooks through a component
+
+**SHOULD** test hooks by rendering a real component that uses them and asserting on visible behavior — this mirrors actual usage and gives the most confidence.
+
+Use `renderHook` only when:
+- the hook has many independent edge cases that would require many different test components, or
+- the hook is published/shared and needs a stable contract test independent of any specific UI.
+
+> If it's a one-off hook extracted only to keep a component body clean — it's covered by the component test. No separate hook test needed.
+
+### 13.2 `renderHook` rules
+
+- **MUST** access hook return values via `result.current`.
+- **MUST** wrap any call that triggers a state update in `act()`.
+- **MUST** use `waitFor` for async hooks (same rule as §6).
+
+**Import depends on project version:**
+
+| Project version | Import from |
+|---|---|
+| React 18 + `@testing-library/react` ≥ 13.1 | `import { renderHook, act } from '@testing-library/react'` |
+| React 16/17 with old dependencies | `import { renderHook, act } from '@testing-library/react-hooks'` |
+
+> **⚠️ Legacy exception.** `@testing-library/react-hooks` is deprecated for new projects, but remains the only option for projects that cannot upgrade to React 18. In such projects, using this library is a justified exception, not a mistake. The API `result.current`, `act`, `rerender`, `waitFor` is identical in both packages.
+
+```ts
+// ✅ React 18 / new project
+import { renderHook, act } from '@testing-library/react'
+
+// ✅ React 16/17 / legacy-project (justified exception)
+import { renderHook, act } from '@testing-library/react-hooks'
+
+// the same API in both cases:
+it('increments the counter', () => {
+  const { result } = renderHook(() => useCounter(0))
+
+  act(() => {
+    result.current.increment()
+  })
+
+  expect(result.current.count).toBe(1)
+})
+```
+
+### 13.3 Props changes & cleanup
+
+- **SHOULD** use `rerender` (from `renderHook` return value) to test how a hook reacts to changing arguments.
+- **SHOULD** use `unmount` to test cleanup functions (e.g. `useEffect` teardown).
+
+```ts
+const { result, rerender } = renderHook(
+  ({ url }) => useFetch(url),
+  { initialProps: { url: '/api/v1' } }
+)
+
+rerender({ url: '/api/v2' })
+
+await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2))
+```
+
+### 13.4 Hooks that require context / providers
+
+- **MUST** pass a `wrapper` to `renderHook` when the hook depends on a React context.
+- **MUST NOT** mock the context value directly — use the real Provider.
+
+```ts
+const wrapper = ({ children }) => (
+  <AuthProvider>{children}</AuthProvider>
+)
+
+const { result } = renderHook(() => useAuth(), { wrapper })
+
+expect(result.current).toHaveProperty('user')
+```
+
+### 13.5 Hard prohibitions
+
+- **MUST NOT** call a custom hook as a plain function in a test — this breaks the Rules of Hooks.
+- **MUST NOT** mock built-in React hooks (`useState`, `useEffect`, etc.) — you lose all confidence in the actual behavior.
