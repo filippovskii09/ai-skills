@@ -1,7 +1,3 @@
----
-description: Common rules for JavaScript/TypeScript development and testing (Node.js & Frontend)
----
-
 # Common Development Rules
 
 These rules apply universally to any development or testing tasks in this project involving JavaScript or TypeScript, on both the frontend and backend (Node.js). You MUST follow these guidelines strictly.
