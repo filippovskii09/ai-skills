@@ -1,0 +1,15 @@
+{
+  "skill": "commitlint-husky-recipe",
+  "purpose": "Commit message quality gate with Husky commit-msg hook",
+  "sourcePattern": {
+    "hookFile": ".husky/commit-msg",
+    "hookCommand": "npx --no -- commitlint --edit $1",
+    "configFile": "commitlint.config.js"
+  },
+  "dependencies": ["@commitlint/cli", "@commitlint/config-conventional", "husky"],
+  "commands": {
+    "validateRecent": "npx commitlint --from HEAD~1 --to HEAD --verbose"
+  },
+  "recommendedTypeEnum": ["feat", "fix", "chore", "refactor", "docs", "style", "test", "ci", "perf", "revert"],
+  "sourceProject": "/Users/arturfilippovskij/Desktop/code/rg/shared-ui"
+}
