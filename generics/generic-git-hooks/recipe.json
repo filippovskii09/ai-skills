@@ -1,0 +1,51 @@
+{
+  "skill": "generic-git-hooks",
+  "purpose": "Reusable git hooks automation for Husky/lint-staged and Python pre-commit framework",
+  "detection": {
+    "order": ["pre-commit-framework", "husky"],
+    "signals": {
+      "preCommitFramework": [".pre-commit-config.yaml exists"],
+      "husky": [".husky directory exists", "package.json has prepare: husky"]
+    }
+  },
+  "profiles": {
+    "husky": {
+      "dependencies": ["husky", "lint-staged", "eslint", "prettier"],
+      "optionalDependencies": ["stylelint", "@commitlint/cli", "@commitlint/config-conventional"],
+      "hooks": {
+        "pre-commit": "npx lint-staged",
+        "commit-msg": "npx --no -- commitlint --edit $1"
+      },
+      "commands": {
+        "bootstrap": ["npm install -D husky lint-staged eslint prettier", "npm run prepare"],
+        "validate": ["npx lint-staged"]
+      },
+      "stagedRules": {
+        "*.{ts,tsx,js,jsx}": ["eslint --fix"],
+        "*.scss": ["stylelint --fix"],
+        "*.{json,md,yml,yaml,html}": ["prettier --write"]
+      }
+    },
+    "pre-commit-framework": {
+      "dependencies": ["pre-commit"],
+      "hookConfig": ".pre-commit-config.yaml",
+      "commands": {
+        "bootstrap": ["pre-commit install", "pre-commit install --hook-type pre-push"],
+        "validate": ["pre-commit run --all-files"]
+      },
+      "recommendedHooks": [
+        "pre-commit-hooks/check-yaml",
+        "pre-commit-hooks/end-of-file-fixer",
+        "pre-commit-hooks/trailing-whitespace",
+        "pre-commit-hooks/check-added-large-files",
+        "local/stylelint",
+        "local/tests-on-pre-push"
+      ]
+    }
+  },
+  "sourcesAnalyzed": [
+    "/Users/arturfilippovskij/Desktop/study-projects/quize",
+    "/Users/arturfilippovskij/Desktop/code/rg/shared-ui",
+    "/Users/arturfilippovskij/Desktop/code/rg/ksk-ki"
+  ]
+}
