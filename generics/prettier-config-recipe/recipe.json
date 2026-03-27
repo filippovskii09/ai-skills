@@ -1,0 +1,17 @@
+{
+  "skill": "prettier-config-recipe",
+  "source": ".prettierrc",
+  "purpose": "Deterministic formatting standards",
+  "config": {
+    "semi": true,
+    "trailingComma": "es5",
+    "singleQuote": true,
+    "printWidth": 120,
+    "tabWidth": 2
+  },
+  "commands": {
+    "formatAll": "npx prettier --write .",
+    "formatStaged": "npx lint-staged"
+  },
+  "dependencies": ["prettier"]
+}
