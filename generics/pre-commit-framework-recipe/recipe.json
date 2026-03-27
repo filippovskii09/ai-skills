@@ -1,0 +1,20 @@
+{
+  "skill": "pre-commit-framework-recipe",
+  "purpose": "Stage-aware pre-commit framework configuration for polyglot repositories",
+  "source": ".pre-commit-config.yaml",
+  "commands": {
+    "bootstrap": ["pre-commit install", "pre-commit install --hook-type pre-push"],
+    "validate": ["pre-commit run --all-files"]
+  },
+  "recommendedHookSets": {
+    "hygiene": [
+      "pre-commit-hooks/check-yaml",
+      "pre-commit-hooks/end-of-file-fixer",
+      "pre-commit-hooks/trailing-whitespace",
+      "pre-commit-hooks/check-added-large-files"
+    ],
+    "language": ["ruff", "ruff-format", "stylelint"],
+    "prePush": ["test-suite", "coverage-report"]
+  },
+  "sourceProject": "/Users/arturfilippovskij/Desktop/code/rg/ksk-ki"
+}
