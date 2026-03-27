@@ -1,0 +1,71 @@
+{
+  "skill": "eslint-config-recipe",
+  "source": "eslint.config.js",
+  "purpose": "Universal linting recipe for JS, TS, and Hybrid repositories",
+  "commands": {
+    "lint": "npm run lint",
+    "lintFix": "npm run lint:fix"
+  },
+  "detection": {
+    "order": ["typescript", "javascript", "hybrid"],
+    "detectCommand": "has_tsconfig=$(ls tsconfig*.json >/dev/null 2>&1; echo $?); has_ts_dep=$(node -e \"const p=require('./package.json'); const d={...p.dependencies,...p.devDependencies}; process.exit(d.typescript?0:1)\"); has_ts_files=$(rg --files src -g '*.ts' -g '*.tsx' | head -n 1); has_js_files=$(rg --files src -g '*.js' -g '*.jsx' | head -n 1); if [ -n \\\"$has_ts_files\\\" ] && [ -n \\\"$has_js_files\\\" ]; then echo hybrid; elif [ \\\"$has_tsconfig\\\" -eq 0 ] || [ \\\"$has_ts_dep\\\" -eq 0 ] || [ -n \\\"$has_ts_files\\\" ]; then echo typescript; else echo javascript; fi",
+    "typescriptSignals": [
+      "tsconfig.json or tsconfig.*.json exists",
+      "typescript is present in package.json deps/devDeps",
+      "source contains *.ts or *.tsx"
+    ],
+    "hybridSignals": [
+      "source contains *.js or *.jsx",
+      "source contains *.ts or *.tsx"
+    ]
+  },
+  "profiles": {
+    "javascript": {
+      "extends": ["@eslint/js/recommended"],
+      "plugins": ["react-hooks", "react-refresh", "prettier"],
+      "criticalRules": [
+        "no-unused-vars",
+        "no-undef",
+        "react-refresh/only-export-components"
+      ],
+      "tsParserProjects": []
+    },
+    "typescript": {
+      "extends": [
+        "@eslint/js/recommended",
+        "typescript-eslint/strictTypeChecked",
+        "typescript-eslint/stylisticTypeChecked"
+      ],
+      "plugins": ["react-hooks", "react-refresh", "prettier"],
+      "criticalRules": [
+        "@typescript-eslint/no-unused-vars",
+        "@typescript-eslint/no-explicit-any",
+        "@typescript-eslint/no-floating-promises",
+        "@typescript-eslint/require-await",
+        "react-refresh/only-export-components"
+      ],
+      "tsParserProjects": ["./tsconfig.app.json", "./tsconfig.node.json"]
+    },
+    "hybrid": {
+      "strategy": "base-for-all + ts-overrides-for-ts-files + js-rules-for-js-files",
+      "plugins": ["react-hooks", "react-refresh", "prettier"],
+      "jsCriticalRules": ["no-unused-vars", "no-undef"],
+      "tsCriticalRules": [
+        "@typescript-eslint/no-unused-vars",
+        "@typescript-eslint/no-explicit-any",
+        "@typescript-eslint/no-floating-promises"
+      ],
+      "tsParserProjects": ["./tsconfig.app.json", "./tsconfig.node.json"]
+    }
+  },
+  "dependencyMatrix": {
+    "always": [
+      "eslint",
+      "@eslint/js",
+      "eslint-plugin-prettier",
+      "eslint-config-prettier"
+    ],
+    "reactOnly": ["eslint-plugin-react-hooks", "eslint-plugin-react-refresh"],
+    "typescriptOnly": ["typescript", "typescript-eslint"]
+  }
+}
