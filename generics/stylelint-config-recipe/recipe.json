@@ -1,0 +1,50 @@
+{
+  "skill": "stylelint-config-recipe",
+  "purpose": "Reusable Stylelint setup for SCSS/CSS with Prettier integration",
+  "sourcesAnalyzed": [
+    "/Users/arturfilippovskij/Desktop/code/rg/ksk-ki/.stylelintrc.json",
+    "/Users/arturfilippovskij/Desktop/code/rg/shared-ui/.stylelintrc.json"
+  ],
+  "dependencies": ["stylelint", "stylelint-config-standard-scss", "stylelint-prettier", "prettier"],
+  "commands": {
+    "lintScss": "stylelint 'src/**/*.scss'",
+    "lintScssFix": "stylelint 'src/**/*.scss' --fix"
+  },
+  "baseline": {
+    "extends": ["stylelint-config-standard-scss"],
+    "plugins": ["stylelint-prettier"],
+    "rules": {
+      "prettier/prettier": true,
+      "color-named": "never",
+      "color-no-invalid-hex": true,
+      "selector-class-pattern": null,
+      "declaration-empty-line-before": null,
+      "at-rule-empty-line-before": null,
+      "max-nesting-depth": [
+        4,
+        {
+          "ignore": ["blockless-at-rules", "pseudo-classes"],
+          "ignoreAtRules": ["include"]
+        }
+      ]
+    }
+  },
+  "profiles": {
+    "ui-library-strict": {
+      "rules": {
+        "no-descending-specificity": [true, { "severity": "warning" }],
+        "scss/no-global-function-names": null,
+        "media-feature-range-notation": null,
+        "value-keyword-case": null
+      }
+    },
+    "scss-relaxed": {
+      "rules": {
+        "no-descending-specificity": null
+      }
+    }
+  },
+  "lintStagedIntegration": {
+    "*.scss": ["stylelint --fix"]
+  }
+}
